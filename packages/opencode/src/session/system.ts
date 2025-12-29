@@ -1,4 +1,3 @@
-import { Ripgrep } from "../file/ripgrep"
 import { Global } from "../global"
 import { Filesystem } from "../util/filesystem"
 import { Config } from "../config/config"
@@ -7,14 +6,7 @@ import { Instance } from "../project/instance"
 import path from "path"
 import os from "os"
 
-import PROMPT_ANTHROPIC from "./prompt/anthropic.txt"
-import PROMPT_ANTHROPIC_WITHOUT_TODO from "./prompt/qwen.txt"
-import PROMPT_BEAST from "./prompt/beast.txt"
-import PROMPT_GEMINI from "./prompt/gemini.txt"
 import PROMPT_ANTHROPIC_SPOOF from "./prompt/anthropic_spoof.txt"
-
-import PROMPT_CODEX from "./prompt/codex.txt"
-import type { Provider } from "@/provider/provider"
 
 export namespace SystemPrompt {
   export function header(providerID: string) {
@@ -22,36 +14,28 @@ export namespace SystemPrompt {
     return []
   }
 
-  export function provider(model: Provider.Model) {
-    if (model.api.id.includes("gpt-5")) return [PROMPT_CODEX]
-    if (model.api.id.includes("gpt-") || model.api.id.includes("o1") || model.api.id.includes("o3"))
-      return [PROMPT_BEAST]
-    if (model.api.id.includes("gemini-")) return [PROMPT_GEMINI]
-    if (model.api.id.includes("claude")) return [PROMPT_ANTHROPIC]
-    return [PROMPT_ANTHROPIC_WITHOUT_TODO]
-  }
-
   export async function environment() {
     const project = Instance.project
     return [
       [
-        `Here is some useful information about the environment you are running in:`,
+        `КРИТИЧНО ВАЖНО: Думать и отвечать на языке запроса пользователя.`,
+        `Вот некоторая полезная информация о среде, в которой вы работаете:`,
         `<env>`,
-        `  Working directory: ${Instance.directory}`,
-        `  Is directory a git repo: ${project.vcs === "git" ? "yes" : "no"}`,
-        `  Platform: ${process.platform}`,
-        `  Today's date: ${new Date().toDateString()}`,
+        `  Рабочая директория: ${Instance.directory}`,
+        `  Директория является git-репозиторием: ${project.vcs === "git" ? "да" : "нет"}`,
+        `  Платформа: ${process.platform}`,
+        `  Сегодняшняя дата: ${new Date().toLocaleDateString("ru-RU")}`,
         `</env>`,
-        `<files>`,
-        `  ${
-          project.vcs === "git"
-            ? await Ripgrep.tree({
-                cwd: Instance.directory,
-                limit: 200,
-              })
-            : ""
-        }`,
-        `</files>`,
+        // `<files>`,
+        // `  ${
+        //   project.vcs === "git"
+        //     ? await Ripgrep.tree({
+        //         cwd: Instance.directory,
+        //         limit: 200,
+        //       })
+        //     : ""
+        // }`,
+        // `</files>`,
       ].join("\n"),
     ]
   }

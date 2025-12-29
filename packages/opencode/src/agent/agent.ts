@@ -19,6 +19,7 @@ export namespace Agent {
   export const Info = z
     .object({
       name: z.string(),
+      displayName: z.string().optional(),
       description: z.string().optional(),
       mode: z.enum(["subagent", "primary", "all"]),
       native: z.boolean().optional(),
@@ -117,6 +118,7 @@ export namespace Agent {
     const result: Record<string, Info> = {
       build: {
         name: "build",
+        displayName: "Вася делает",
         tools: { ...defaultTools },
         options: {},
         permission: agentPermission,
@@ -125,6 +127,7 @@ export namespace Agent {
       },
       plan: {
         name: "plan",
+        displayName: "Вася планирует",
         options: {},
         permission: planPermission,
         tools: {
