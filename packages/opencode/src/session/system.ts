@@ -1,12 +1,26 @@
 import { Global } from "../global"
 import { Filesystem } from "../util/filesystem"
 import { Config } from "../config/config"
+import { Log } from "../util/log"
 
 import { Instance } from "../project/instance"
 import path from "path"
 import os from "os"
 
-import PROMPT_ANTHROPIC_SPOOF from "./prompt/anthropic_spoof.txt"
+const log = Log.create({ service: "system-prompt" })
+
+async function resolveRelativeInstruction(instruction: string): Promise<string[]> {
+  if (!Flag.OPENCODE_DISABLE_PROJECT_CONFIG) {
+    return Filesystem.globUp(instruction, Instance.directory, Instance.worktree).catch(() => [])
+  }
+  if (!Flag.OPENCODE_CONFIG_DIR) {
+    log.warn(
+      `Skipping relative instruction "${instruction}" - no OPENCODE_CONFIG_DIR set while project config is disabled`,
+    )
+    return []
+  }
+  return Filesystem.globUp(instruction, Flag.OPENCODE_CONFIG_DIR, Flag.OPENCODE_CONFIG_DIR).catch(() => [])
+}
 
 export namespace SystemPrompt {
   export function header(providerID: string) {
@@ -78,7 +92,7 @@ export namespace SystemPrompt {
             }),
           ).catch(() => [])
         } else {
-          matches = await Filesystem.globUp(instruction, Instance.directory, Instance.worktree).catch(() => [])
+          matches = await resolveRelativeInstruction(instruction)
         }
         matches.forEach((path) => paths.add(path))
       }
